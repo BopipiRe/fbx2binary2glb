@@ -25,7 +25,7 @@ def setup_logging():
         format='%(asctime)s - %(levelname)s - %(message)s',
         handlers=[
             logging.StreamHandler(),  # 输出到控制台
-            logging.FileHandler("fbx_to_glb.log")  # 输出到文件
+            # logging.FileHandler(log_path)  # 输出到文件
         ]
     )
     return logging.getLogger()
