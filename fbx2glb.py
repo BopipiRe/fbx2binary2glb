@@ -13,7 +13,8 @@ def parse_args():
         argv = argv[argv.index("--") + 1:]  # 提取 `--` 后的参数
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", required=True, help="输入FBX文件路径")
+    parser.add_argument("--fbx", required=True, help="输入FBX文件路径")
+    parser.add_argument("--input", required=False, help="输入目录路径")
     parser.add_argument("--output", required=True, help="输出目录路径")
     return parser.parse_args(argv)
 
@@ -87,10 +88,10 @@ if __name__ == "__main__":
     logger = setup_logging()
     args = parse_args()
 
-    if not args.input or not args.output:
-        logging.error("错误：缺少--input或--output参数")
+    if not args.fbx or not args.output:
+        logging.error("错误：缺少--fbx或--output参数")
         sys.exit(1)
-    fbx_to_glb(args.input, args.output, logger)
+    fbx_to_glb(args.fbx, args.output, logger)
 
     # input_fbx = "E:\\Code\\Python\\香城大饭店\\rc_huild_TBxcdjd_lod01.FBX"
     # output_dir = "D:\\glb_output"
