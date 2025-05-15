@@ -15,17 +15,18 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--fbx", required=True, help="输入FBX文件路径")
     parser.add_argument("--output", required=True, help="输出目录路径")
+    parser.add_argument("--log", required=True, help="日志保存路径路径")
     return parser.parse_args(argv)
 
 
-def setup_logging():
+def setup_logging(log):
     """配置日志格式和级别"""
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.StreamHandler(),  # 输出到控制台
-            # logging.FileHandler(log_path)  # 输出到文件
+            # logging.StreamHandler(),  # 输出到控制台
+            logging.FileHandler(log)  # 输出到文件
         ]
     )
     return logging.getLogger()
@@ -84,8 +85,8 @@ def fbx_to_glb(fbx_path, output_dir, logger):
 
 if __name__ == "__main__":
     # 配置日志
-    logger = setup_logging()
     args = parse_args()
+    logger = setup_logging(args.log)
 
     if not args.fbx or not args.output:
         logging.error("错误：缺少--fbx或--output参数")
