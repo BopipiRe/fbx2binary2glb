@@ -14,7 +14,6 @@ def parse_args():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--fbx", required=True, help="输入FBX文件路径")
-    parser.add_argument("--input", required=False, help="输入目录路径")
     parser.add_argument("--output", required=True, help="输出目录路径")
     return parser.parse_args(argv)
 

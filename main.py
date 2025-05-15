@@ -2,11 +2,9 @@ import argparse
 import os
 import subprocess
 import sys
-from multiprocessing import Pool, cpu_count
-
-blender = ""
-fbx2glb_script = ""
-output = ""
+import time
+from functools import partial
+from multiprocessing import Pool, cpu_count, freeze_support
 
 
 def resource_path(relative_path):
@@ -23,30 +21,59 @@ def resource_path(relative_path):
 def main():
     parser = argparse.ArgumentParser(description="FBX转GLB转换工具")
     parser.add_argument("--blender", type=str, required=True, help="blender.exe路径")
-    parser.add_argument("--fbx", type=str, required=True, help="输入FBX文件路径")
-    parser.add_argument("--input", type=str, required=False, help="输入目录路径")
+    parser.add_argument("--input", type=str, required=True, help="输入文件路径或目录路径")
     parser.add_argument("--output", type=str, required=True, help="输出目录路径")
+    parser.add_argument("--processes", type=int, default=max(1, cpu_count() - 1), help="并发进程数 (默认: CPU核心数-1)")
     args = parser.parse_args()
-    global fbx2glb_script, blender, output
-    output = args.output
     fbx2glb_script = resource_path("fbx2glb.py")
-    blender = args.blender
-    fbx_to_glb(args.fbx)
+
+    if os.path.isfile(args.input):
+        fbx_to_glb(args.blender, fbx2glb_script, args.output, args.input)
+
+    elif args.input:
+        input_files = [
+            os.path.join(args.input, fname)
+            for fname in os.listdir(args.input)
+            if fname.lower().endswith('.fbx')
+        ]
+
+        if not input_files:
+            print("No FBX files found in the input path", file=sys.stderr)
+            return
+
+        print(f"Found {len(input_files)} FBX files to process with {args.processes} workers")
+        start_time = time.time()
+        # 使用多进程池处理
+        func = partial(fbx_to_glb, args.blender, fbx2glb_script, args.output)
+        with Pool(args.processes) as pool:
+            results = pool.map(func, input_files)
+
+        success_count = sum(1 for r in results if r)
+
+        end_time = time.time()  # 记录结束时间
+        elapsed_time = end_time - start_time
+        print(f"\nConversion completed: {success_count} succeeded, {len(results) - success_count} failed")
+        print(f"\nTotal execution time: {elapsed_time:.2f} seconds")
 
 
-def fbx_to_glb(fbx):
-    """处理FBX文件"""
-    cmd = [
-        blender,
-        "-b",  # 后台模式
-        "-P", fbx2glb_script,  # 指定Python脚本
-        "--",
-        "--fbx", fbx,
-        "--output", output,
-    ]
-    subprocess.run(cmd, check=True)
+def fbx_to_glb(blender_path, script_path, output_dir, fbx):
+    """修改为接收所有必要参数"""
+    try:
+        cmd = [
+            blender_path,
+            "-b",
+            "-P", script_path,
+            "--",
+            "--fbx", fbx,
+            "--output", output_dir,
+        ]
+        subprocess.run(cmd, check=True, shell=True)
+        return True
+    except subprocess.CalledProcessError:
+        print(f"Failed to convert {fbx}")
+        return False
 
 
 if __name__ == "__main__":
+    freeze_support()
     main()
-
