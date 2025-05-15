@@ -1,0 +1,6 @@
+{
+  "nodes_remove_by_search": [
+    "root_LOD_GEOMETRY",
+    "root_LOD_ROADWAY"
+  ]
+}
